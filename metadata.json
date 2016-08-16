@@ -1,6 +1,6 @@
 {
   "name": "wso2-wso2mb",
-  "version": "2.1.0",
+  "version": "3.1.0",
   "author": "WSO2",
   "license": "Apache-2.0",
   "summary": "WSO2 Message Broker Puppet module",
@@ -12,7 +12,7 @@
       "operatingsystemrelease": [ "12.04", "14.04" ]
     }
   ],
-  "tags" : ["wso2mb", "3.1.0","3.0.0"],
+  "tags" : ["wso2mb", "3.1.0"],
   "dependencies": [
     { "name": "wso2/wso2base", "version_requirement": "2.1.0" }
   ]
