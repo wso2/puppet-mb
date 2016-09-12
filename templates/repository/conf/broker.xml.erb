@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+
 <!--
-  ~ Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~  Copyright (c) 2016, WSO2 Inc. (http://wso2.com) All Rights Reserved.
   ~
-  ~ WSO2 Inc. licenses this file to you under the Apache License,
-  ~ Version 2.0 (the "License"); you may not use this file except
-  ~ in compliance with the License.
-  ~ You may obtain a copy of the License at
+  ~  WSO2 Inc. licenses this file to you under the Apache License,
+  ~  Version 2.0 (the "License"); you may not use this file except
+  ~  in compliance with the License.
+  ~  You may obtain a copy of the License at
   ~
   ~    http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~ Unless required by applicable law or agreed to in writing,
-  ~ software distributed under the License is distributed on an
-  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  ~ KIND, either express or implied. See the License for the
-  ~ specific language governing permissions and limitations
-  ~ under the License.
+  ~  Unless required by applicable law or agreed to in writing,
+  ~  software distributed under the License is distributed on an
+  ~  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~  KIND, either express or implied.  See the License for the
+  ~  specific language governing permissions and limitations
+  ~  under the License.
   -->
 
 <!-- This is the root configuration file of WSO2 Message Broker (MB). Links to configurations of 
@@ -85,14 +86,12 @@ This file is ciphertool compliant. Refer PRODUCT_HOME/repository/conf/security/c
                 </trustStore>
             </sslConnection>
 
-            <!--All receiving events/messages will be in this ring buffer. Ring buffer size
-            of MQTT inbound event disruptor. Default is set to 32768 (1024 * 32)
+            <!--Ring buffer size of MQTT inbound event disruptor. Default is set to 32768 (1024 * 32)
             Having a large ring buffer will have a increase memory usage and will improve performance
             and vise versa -->
             <inboundBufferSize>32768</inboundBufferSize>
 
-            <!-- Messages delivered to clients will be placed in this ring buffer. 
-            Ring buffer size of MQTT delivery event disruptor. Default is set to 32768 (1024 * 32)
+            <!--Ring buffer size of MQTT delivery event disruptor. Default is set to 32768 (1024 * 32)
             Having a large ring buffer will have a increase memory usage and will improve performance
             and vise versa -->
             <deliveryBufferSize>32768</deliveryBufferSize>
@@ -151,11 +150,11 @@ This file is ciphertool compliant. Refer PRODUCT_HOME/repository/conf/security/c
         <!-- RDBMS MB Store Configuration -->
 
         <messageStore class="org.wso2.andes.store.rdbms.RDBMSMessageStoreImpl">
-          <%- if @master_datasources['wso2_mb_store_db'] -%>
+        <%- if @master_datasources['wso2_mb_store_db'] -%>
             <property name="dataSource"><%= @master_datasources['wso2_mb_store_db']['jndi_config']%></property>
-          <%- else -%>
+        <%- else -%>
             <property name="dataSource">WSO2MBStoreDB</property>
-          <%- end -%>
+        <%- end -%>
             <property name="storeUnavailableSQLStateClasses">08</property>
             <property name="integrityViolationSQLStateClasses">23,27,44</property>
             <property name="dataErrorSQLStateClasses">21,22</property>
@@ -163,11 +162,11 @@ This file is ciphertool compliant. Refer PRODUCT_HOME/repository/conf/security/c
         </messageStore>
 
         <contextStore class="org.wso2.andes.store.rdbms.RDBMSAndesContextStoreImpl">
-          <%- if @master_datasources['wso2_mb_store_db'] -%>
+        <%- if @master_datasources['wso2_mb_store_db'] -%>
             <property name="dataSource"><%= @master_datasources['wso2_mb_store_db']['jndi_config']%></property>
-          <%- else -%>
+        <%- else -%>
             <property name="dataSource">WSO2MBStoreDB</property>
-          <%- end -%>
+        <%- end -%>
             <property name="storeUnavailableSQLStateClasses">08</property>
             <property name="integrityViolationSQLStateClasses">23,27,44</property>
             <property name="dataErrorSQLStateClasses">21,22</property>
@@ -210,6 +209,11 @@ This file is ciphertool compliant. Refer PRODUCT_HOME/repository/conf/security/c
     <!--Publisher transaction related configurations.-->
     <transaction>
 
+        <!--Number of connections reserved at a given time for transactional DB tasks.
+        Transaction will hold on to a DB connection until a transaction is committed,
+        rolled back or closed.-->
+        <dbConnectionPoolSize>10</dbConnectionPoolSize>
+
         <!--Maximum batch size (Messages) for a transaction. Exceeding this limit will result
         in a failure in the subsequent commit request. Default is set to 10MB. Limit is
         calculated considering the payload of messages-->
@@ -222,22 +226,22 @@ This file is ciphertool compliant. Refer PRODUCT_HOME/repository/conf/security/c
     <performanceTuning>
 
         <slots>
-            <!--
-                If message publishers are slow, time taken to fill the slot (up to <windowSize>) will be longer.
-                This will add an latency to messages. Therefore broker will mark the slot as 
-                ready to deliver before even the slot is entirely filled after specified time.
-                NOTE: specified in milliseconds.
-            -->
-            <messageAccumulationTimeout>2000</messageAccumulationTimeout>
+            <!--maximum time interval where slot can be retain in memory before updating to the
+            cluster, in milliseconds -->
+            <slotRetainTimeInMemory>1000</slotRetainTimeInMemory>
 
-            <!--Rough estimate for size of a slot-->
+            <!--rough estimate for size of a slot-->
             <windowSize>1000</windowSize>
 
-            <!-- Time interval which broker check for slots that can be marked as 'ready to deliver' 
-                 (- slots which have a aged more than 'messageAccumulationTimeout')
-                 NOTE: specified in milliseconds.
-            -->
-            <timerPeriod>1000</timerPeriod>
+            <!-- Published message information is sent to slot coordinator by the node when it
+            either reaches the slot window size or the window creation timeout. This configures
+            the timeout in milliseconds for slot window creation task.
+
+            In a slow message publishing scenario, this is the delay for each message for delivery.
+            For instance if we publish one message per minute then each message will have to wait
+            till this timeout before the messages are submitted to the slot coordinator. Note that
+            Messages are delivered only after the slot coordinator is informed -->
+            <windowCreationTimeout>3000</windowCreationTimeout>
 
             <!--Number of SlotDeliveryWorker threads that should be started-->
             <workerThreadCount>5</workerThreadCount>
@@ -259,11 +263,6 @@ This file is ciphertool compliant. Refer PRODUCT_HOME/repository/conf/security/c
             Increasing this value will speed-up the message sending mechanism. But the load
             on the data store will increase. -->
             <parallelContentReaders>5</parallelContentReaders>
-
-            <!-- Number of parallel decompression handlers used to decompress messages before send to subscribers.
-            Increasing this value will speed-up the message decompressing mechanism. But the system load
-            will increase. -->
-            <parallelDecompressionHandlers>5</parallelDecompressionHandlers>
 
             <!-- Number of parallel delivery handlers used to send messages to subscribers.
             Increasing this value will speed-up the message sending mechanism. But the system load
@@ -349,17 +348,6 @@ This file is ciphertool compliant. Refer PRODUCT_HOME/repository/conf/security/c
             store large content chunks converted to smaller content chunks within the DB with this
             parameter. -->
             <maxContentChunkSize>65500</maxContentChunkSize>
-
-            <!-- This is the configuration to allow compression of message contents, before store messages
-            into the database.-->
-            <allowCompression>false</allowCompression>
-
-            <!-- This is the configuration to change the value of the content compression threshold (in bytes).
-            Message contents less than this value will not compress, even compression is enabled. The recommended
-            message size of the smallest message before compression is 13bytes. Compress messages smaller than
-            13bytes will expand the message size by 0.4% -->
-            <contentCompressionThreshold>1000</contentCompressionThreshold>
-
         </contentHandling>
 
         <inboundEvents>
@@ -392,6 +380,10 @@ This file is ciphertool compliant. Refer PRODUCT_HOME/repository/conf/security/c
             But the load on the data store will increase.-->
             <transactionMessageWriters>1</transactionMessageWriters>
         </inboundEvents>
+
+        <failover>
+
+        </failover>
 
     </performanceTuning>
 
